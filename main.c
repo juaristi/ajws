@@ -6,11 +6,16 @@
  */
 #include <stdio.h>
 #include <pfring.h>
+#include "main.h"
+#include "log.h"
 
 int main(int argc, char **argv)
 {
 	const char *device = "eth0";
 	u_char mac_addr[6];
+
+	opt.debug = TRUE;
+	opt.verbose = TRUE;
 
 	pfring *ring = pfring_open(device, 128, 0);
 	if (ring == NULL)
@@ -36,4 +41,6 @@ int main(int argc, char **argv)
 	}
 
 	pfring_close(ring);
+
+	return 0;
 }
