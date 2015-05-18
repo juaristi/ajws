@@ -4,6 +4,7 @@
  *  Created on: May 16, 2015
  *      Author: ajuaristi
  */
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -21,6 +22,9 @@ void logprintf(int level, const char *fmt, ...)
 	case LOG_VERBOSE:
 		if (!opt.verbose)
 			return;
+		break;
+	case LOG_FATAL:
+		printf("ERROR - ");
 		break;
 	default:
 		return;

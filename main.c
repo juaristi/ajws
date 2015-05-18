@@ -4,6 +4,7 @@
  *  Created on: May 14, 2015
  *      Author: ajuaristi
  */
+
 #include <stdio.h>
 #include <pfring.h>
 #include "main.h"
@@ -20,14 +21,14 @@ int main(int argc, char **argv)
 	pfring *ring = pfring_open(device, 128, 0);
 	if (ring == NULL)
 	{
-		printf("ERROR: Could not open device %s.\n", device);
+		logprintf(LOG_FATAL, "Could not open device %s.\n", device);
 		exit(EXIT_FAILURE);
 	}
 
 	if (pfring_get_bound_device_address(ring, mac_addr) == 0)
 	{
-		printf("Using device %s. ", device);
-		printf("MAC address: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
+		logprintf(LOG_VERBOSE, "Using device %s. ", device);
+		logprintf(LOG_VERBOSE, "MAC address: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
 				mac_addr[0],
 				mac_addr[1],
 				mac_addr[2],
@@ -37,7 +38,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		printf("Could not get MAC from device %s.\n", device);
+		logprintf(LOG_FATAL, "Could not get MAC from device %s.\n", device);
 	}
 
 	pfring_close(ring);

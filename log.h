@@ -11,6 +11,7 @@
 enum {
 	LOG_DEBUG,
 	LOG_VERBOSE,
+	LOG_FATAL
 };
 
 void logprintf(int, const char *, ...);
