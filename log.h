@@ -9,6 +9,7 @@
 #define LOG_H
 
 enum {
+	LOG_ALWAYS,
 	LOG_DEBUG,
 	LOG_VERBOSE,
 	LOG_FATAL

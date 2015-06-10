@@ -15,6 +15,8 @@ void logprintf(int level, const char *fmt, ...)
 {
 	switch (level)
 	{
+	case LOG_ALWAYS:
+		break;
 	case LOG_DEBUG:
 		if (!opt.debug)
 			return;
@@ -42,6 +44,7 @@ void hexlog(const char *hexstr, int len)
 	int written, written_ttl;
 	int round, padding;
 
+	/* Hexdumps are only supposed to be used for debugging. */
 	if (!opt.debug)
 		return;
 
@@ -87,6 +90,6 @@ void hexlog(const char *hexstr, int len)
 		printf("\n");
 
 		if (written_ttl < len)
-			start = end + 1;
+			start = end;
 	} while (written_ttl < len);
 }
