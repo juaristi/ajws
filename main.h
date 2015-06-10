@@ -8,13 +8,13 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-typedef int BOOL;
+typedef _Bool bool;
 #define TRUE  1
 #define FALSE 0
 
 struct options {
-	BOOL debug;
-	BOOL verbose;
+	bool debug;
+	bool verbose;
 };
 
 /* command line options */
