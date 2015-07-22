@@ -9,8 +9,8 @@
 #define MAIN_H
 
 typedef _Bool bool;
-#define TRUE  1
-#define FALSE 0
+#define true  1
+#define false 0
 
 struct options {
 	bool debug;

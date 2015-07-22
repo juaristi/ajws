@@ -5,99 +5,128 @@
  *      Author: ajuaristi
  */
 
+#include <ajws.h>
 #include <stdio.h>
 #include <signal.h>
-#include <pfring.h>
-#include "main.h"
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "log.h"
+#include "dev.h"
 
 #define APP_NAME "ajws"
 bool interrupted;
 
 void sighandler(int signal)
 {
-	logprintf(LOG_ALWAYS, "Interrupted.\n");
-	interrupted = TRUE;
+	logprintf(LOG_ALWAYS, "Interrupted. ");
+	interrupted = true;
 }
 
 #ifndef TESTING
 int main(int argc, char **argv)
 {
-	const char *device = "eth0";
-	u_char mac_addr[6];
-#define BUFLEN 512
-	u_char *buf = NULL;
-	u_int bufsiz = 0;
-	struct pfring_pkthdr hdr;
+	const char *device = "lo";
 
-	opt.debug = TRUE;
-	opt.verbose = TRUE;
+	pajws_dev_t dev = NULL;
+	info_t pi;
+	struct sockaddr_in *ipaddr;
+#define BUFLEN 512
+	u_char buf[BUFLEN];
+	u_int bufsiz = BUFLEN;
+
+	char answer[3];
+
+	opt.debug = true;
+	opt.verbose = true;
 
 	/* Register signal handlers */
-	interrupted = FALSE;
+	interrupted = false;
 	signal(SIGINT, sighandler);
 
 	/* Allocate buffers */
-	buf = (u_char *) malloc(BUFLEN * sizeof(char));
-	if (!buf)
+	dev = (pajws_dev_t) malloc(sizeof(ajws_dev_t));
+	if (!dev)
 	{
-		logprintf(LOG_FATAL, "Could not allocate packet buffer.\n");
+		logprintf(LOG_FATAL, "Could not allocate device buffer for device '%s'.\n", device);
 		exit(EXIT_FAILURE);
 	}
-	bufsiz = BUFLEN;
+	memset(dev, 0, sizeof(ajws_dev_t));
 
-	/* Start PF_RING */
-	pfring *ring = pfring_open(device, 128, 0);
-	if (ring == NULL)
+	dev->name = (char *) malloc(strlen(device) + 1);
+	if (!dev->name)
 	{
-		logprintf(LOG_FATAL, "Could not open device %s.\n", device);
+		logprintf(LOG_FATAL, "Could not allocate device buffer for device '%s'.\n", device);
+		exit(EXIT_FAILURE);
+	}
+	strcpy(dev->name, device);
+
+	/* Prepare the target device for capturing packets */
+	if (!dev_open(dev, APP_NAME))
+	{
+		logprintf(LOG_FATAL, "Could not open device '%s'.\n", dev->name);
 		exit(EXIT_FAILURE);
 	}
 
-	pfring_set_application_name(ring, APP_NAME);
-	pfring_set_direction(ring, rx_and_tx_direction);
-	if (pfring_enable_ring(ring))
-	{
-		logprintf(LOG_FATAL, "The packet ring buffer could not be enabled.\n");
-		exit(EXIT_FAILURE);
-	}
+	/* We're up and running. Print some info about our chosen device. */
+	logprintf(LOG_VERBOSE, "Using device '%s'.\n", dev->name);
+	if (dev->mac_addr[0] != 0)
+		logprintf(LOG_VERBOSE, "\tMAC address: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
+				dev->mac_addr[0],
+				dev->mac_addr[1],
+				dev->mac_addr[2],
+				dev->mac_addr[3],
+				dev->mac_addr[4],
+				dev->mac_addr[5]);
+	else
+		logprintf(LOG_VERBOSE, "\tMAC address: <not found>\n");
 
-	if (pfring_get_bound_device_address(ring, mac_addr) == 0)
+	if (dev->ip_addr.sa_family)
 	{
-		logprintf(LOG_VERBOSE, "Using device %s. ", device);
-		logprintf(LOG_VERBOSE, "MAC address: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
-				mac_addr[0],
-				mac_addr[1],
-				mac_addr[2],
-				mac_addr[3],
-				mac_addr[4],
-				mac_addr[5]);
+		ipaddr = (struct sockaddr_in *) &dev->ip_addr;
+		logprintf(LOG_VERBOSE, "\tIP address: %s\n", inet_ntoa(ipaddr->sin_addr));
 	}
 	else
-	{
-		logprintf(LOG_FATAL, "Could not get MAC from device %s.\n", device);
-	}
+		logprintf(LOG_VERBOSE, "\tIP address: <not found>\n");
 
 	while (!interrupted)
 	{
-		switch (pfring_recv(ring, &buf, bufsiz, &hdr, 0))
+		switch (dev_poll(dev, buf, bufsiz, &pi))
 		{
 		case 0:		/* No packets received. Continue. */
 			break;
 		case 1:		/* We received a packet! */
-			logprintf(LOG_ALWAYS, "Packet received (%d.%ud)\n", hdr.ts.tv_sec, hdr.ts.tv_usec);
-			hexlog(buf, hdr.caplen);
+			logprintf(LOG_ALWAYS, "Packet received (%d.%ud)\n", pi.ts.tv_sec, pi.ts.tv_usec);
+			hexlog(buf, pi.caplen);
 			break;
 		case -1:	/* Error */
 		default:	/* Fall through. Consider every other value an error. */
 			logprintf(LOG_FATAL, "Could not fetch packet. Exiting.\n");
-			interrupted = TRUE;
+			interrupted = true;
 			break;
 		}
 	}
 
-	pfring_close(ring);
-	free(buf);
+	dev_close(dev);
+
+	/* Make some checks before exiting */
+	do
+	{
+		logprintf(LOG_ALWAYS, "Keep the pcap file (y/n)? ");
+		memset(answer, 0, sizeof(answer));
+		fgets(answer, sizeof(answer), stdin);
+		if (answer[1] == 0x0a)
+			answer[1] = 0;
+		if (!strcmp(answer, "y"))
+			logprintf(LOG_ALWAYS, "Saving.\n");
+		else if (!strcmp(answer, "n"))
+			logprintf(LOG_ALWAYS, "Removing.\n");
+		else
+			logprintf(LOG_ALWAYS, "Please answer 'y' or 'n'.\n");
+	} while (answer[0] != 'y' && answer[0] != 'n');
+	logprintf(LOG_ALWAYS, "\n");
 
 	return 0;
 }

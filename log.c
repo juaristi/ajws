@@ -5,11 +5,11 @@
  *      Author: ajuaristi
  */
 
+#include <ajws.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include "log.h"
-#include "main.h"
 
 void logprintf(int level, const char *fmt, ...)
 {
