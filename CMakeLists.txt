@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required (VERSION 2.8)
 
 # In CMake 3.0 and above, this call should be:
 #    project(ajws LANGUAGES C)
-project(ajws C)
+project (ajws C)
 
 if (NOT DEFINED AJWS_HANDLER)
     # The default AJWS_HANDLER is libpcap
     set (AJWS_HANDLER "pcap")
-endif()
+endif ()
 
 message (STATUS "Using handler '${AJWS_HANDLER}'.")
 message (STATUS "System: ${CMAKE_SYSTEM_NAME} on ${CMAKE_SYSTEM_PROCESSOR}")
