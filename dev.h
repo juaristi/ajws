@@ -32,7 +32,7 @@ typedef struct ajws_dev ajws_dev_t, *pajws_dev_t;
  * The target device should be able to capture at least incoming packets.
  * Return true if the above conditions were met, or false otherwise.
  */
-bool dev_open(pajws_dev_t, const char *);
+bool dev_open(pajws_dev_t);
 /*
  * Close the device.
  * After closing the device, a call to 'dev_poll' on that device
