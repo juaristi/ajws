@@ -40,6 +40,11 @@ bool dev_open(pajws_dev_t);
  */
 void dev_close(pajws_dev_t);
 /*
+ * Interrupt a currently running packet capture process,
+ * previously launched via a call to dev_poll.
+ */
+void dev_interrupt(pajws_dev_t);
+/*
  * Poll a packet from the device.
  * Capture a packet from the device and remove it from the
  * underlying buffer. This function should be non-blocking.
@@ -57,6 +62,6 @@ int dev_poll(pajws_dev_t, u_char *, u_int, pinfo_t);
  * Returns false if no device was found that met the given conditions,
  * or true on success.
  */
-bool dev_find_inface(pajws_dev_t);
+bool dev_find_iface(pajws_dev_t);
 
 #endif /* DEV_H_ */

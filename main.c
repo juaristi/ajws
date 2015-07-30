@@ -17,10 +17,12 @@
 #include "dev.h"
 
 bool interrupted;
+pajws_dev_t dev;
 
 void sighandler(int signal)
 {
 	logprintf(LOG_ALWAYS, "Interrupted. ");
+	dev_interrupt(dev);
 	interrupted = true;
 }
 
@@ -29,21 +31,23 @@ int main(int argc, char **argv)
 {
 	const char *device = "eth0";
 
-	pajws_dev_t dev = NULL;
 	info_t pi;
 	struct sockaddr_in *ipaddr;
 #define BUFLEN 512
 	u_char buf[BUFLEN];
 	u_int bufsiz = BUFLEN;
-
 	char answer[3];
+	struct sigaction sigact = {
+		.sa_flags = SA_NODEFER,
+		.sa_handler = sighandler
+	};
 
 	opt.debug = true;
 	opt.verbose = true;
 
 	/* Register signal handlers */
 	interrupted = false;
-	signal(SIGINT, sighandler);
+	sigaction(SIGINT, &sigact, NULL);
 
 	/* Allocate buffers */
 	dev = (pajws_dev_t) malloc(sizeof(ajws_dev_t));

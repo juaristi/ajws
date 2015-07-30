@@ -106,6 +106,13 @@ void dev_close(pajws_dev_t dev)
 	pcap_close(pcap);
 }
 
+void
+dev_interrupt(pajws_dev_t dev)
+{
+	pcap_t *pcap = (pcap_t *) dev->priv;
+	pcap_breakloop(pcap);
+}
+
 int dev_poll(pajws_dev_t dev, u_char *buf, u_int len, pinfo_t pi)
 {
 	struct pcap_pkthdr *hdr;
