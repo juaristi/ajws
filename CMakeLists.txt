@@ -27,5 +27,10 @@ if (AJWS_HANDLER STREQUAL "pcap")
     target_link_libraries (ajws "pcap")
 elseif (AJWS_HANDLER STREQUAL "pfring")
     target_link_libraries (ajws "pfring")
+    target_link_libraries (ajws "numa")
 endif ()
+
+message ("Available options:")
+message ("    -DAJWS_HANDLER: Change the handler that will be used. Default is 'pcap'.")
+message ("    -DCMAKE_C_FLAGS: Specify additional compiler flags.")
 

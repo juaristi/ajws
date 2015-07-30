@@ -12,12 +12,7 @@
 #include "log.h"
 #include "dev.h"
 
-static struct sockaddr_in *get_ip_addr(const char *dev)
-{
-	return NULL;
-}
-
-bool pfr_open(pajws_dev_t dev, const char *app_name)
+bool dev_open(pajws_dev_t dev)
 {
 	bool success = false;
 	u_char mac_addr[6];
@@ -30,9 +25,8 @@ bool pfr_open(pajws_dev_t dev, const char *app_name)
 		goto end;
 	}
 
-	pfring_set_direction(ring, rx_and_tx_direction);
-	if (app_name)
-		pfring_set_application_name(ring, (char *) app_name);
+	pfring_set_direction(ring, rx_only_direction);
+	pfring_set_application_name(ring, "ajws");
 
 	if (pfring_enable_ring(ring))
 	{
@@ -69,20 +63,19 @@ end:
 	return success;
 }
 
-void pfr_close(pajws_dev_t dev)
+void dev_close(pajws_dev_t dev)
 {
 	pfring *ring = (pfring *) dev->priv;
 	pfring_close(ring);
 }
 
-/* TODO 'pinfo_t pi' is currently ignored */
-int pfr_packet_poll(pajws_dev_t dev, u_char **buf, u_int len, pinfo_t pi)
+int dev_poll(pajws_dev_t dev, u_char *buf, u_int len, pinfo_t pi)
 {
 	struct pfring_pkthdr hdr;
 	int result = 0;
 	pfring *ring = (pfring *) dev->priv;
 
-	result = pfring_recv(ring, buf, len, &hdr, 0);
+	result = pfring_recv(ring, &buf, len, &hdr, 0);
 	if (pi && result == 1)
 	{
 		memcpy(&pi->ts, &hdr.ts, sizeof(struct timeval));
@@ -91,15 +84,4 @@ int pfr_packet_poll(pajws_dev_t dev, u_char **buf, u_int len, pinfo_t pi)
 	}
 
 	return result;
-}
-
-ajws_devh_t handler = {
-	.dev_open = pfr_open,
-	.dev_close = pfr_close,
-	.dev_poll = pfr_packet_poll
-};
-
-pajws_devh_t init_device_handler()
-{
-	return &handler;
 }

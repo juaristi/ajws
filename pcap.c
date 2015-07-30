@@ -37,10 +37,7 @@ static struct sockaddr *get_ip_addr(pcap_if_t *dev)
 	return addr;
 }
 
-/*
- * 'app_name' is ignored here.
- */
-bool dev_open(pajws_dev_t dev, const char *app_name)
+bool dev_open(pajws_dev_t dev)
 {
 	bool success = false;
 
@@ -75,9 +72,6 @@ bool dev_open(pajws_dev_t dev, const char *app_name)
 		goto end;
 	}
 
-	/* TODO we don't get the MAC address for now */
-	memset(&dev->mac_addr, 0, 6);
-
 	pcap_freealldevs(devs);
 
 	pcap = pcap_create(dev->name, err);
@@ -87,7 +81,7 @@ bool dev_open(pajws_dev_t dev, const char *app_name)
 		goto end;
 	}
 
-	pcap_setdirection(pcap, PCAP_D_INOUT);
+	pcap_setdirection(pcap, PCAP_D_IN);
 	pcap_set_snaplen(pcap, 128);
 
 	if (pcap_activate(pcap))
