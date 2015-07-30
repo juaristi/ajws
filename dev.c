@@ -64,7 +64,6 @@ bool
 dev_find_iface(pajws_dev_t dev)
 {
 	struct ifaddrs *ifaces, *iface;
-	struct sockaddr_in *ip;
 	bool result = false;
 
 	if (getifaddrs(&ifaces) == -1)
@@ -78,8 +77,7 @@ dev_find_iface(pajws_dev_t dev)
 		 */
 		if (iface->ifa_addr->sa_family == AF_INET)
 		{
-			ip = (struct sockaddr_in *) iface->ifa_addr;
-			if (strcmp(inet_ntoa(ip->sin_addr), dev->ip_addr) == 0)
+			if (memcmp(iface->ifa_addr, &dev->ip_addr, sizeof(struct sockaddr)) == 0)
 			{
 				/* We found a matching interface. Copy its name and exit. */
 				dev->name = (char *) malloc(strlen(iface->ifa_name));
