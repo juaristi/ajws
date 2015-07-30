@@ -69,6 +69,13 @@ void dev_close(pajws_dev_t dev)
 	pfring_close(ring);
 }
 
+void
+dev_interrupt(pajws_dev_t dev)
+{
+	pfring *ring = (pfring *) dev->priv;
+	pfring_breakloop(ring);
+}
+
 int dev_poll(pajws_dev_t dev, u_char *buf, u_int len, pinfo_t pi)
 {
 	struct pfring_pkthdr hdr;
