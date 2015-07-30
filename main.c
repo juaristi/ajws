@@ -16,7 +16,6 @@
 #include "log.h"
 #include "dev.h"
 
-#define APP_NAME "ajws"
 bool interrupted;
 
 void sighandler(int signal)
@@ -28,7 +27,7 @@ void sighandler(int signal)
 #ifndef TESTING
 int main(int argc, char **argv)
 {
-	const char *device = "lo";
+	const char *device = "eth0";
 
 	pajws_dev_t dev = NULL;
 	info_t pi;
@@ -64,7 +63,7 @@ int main(int argc, char **argv)
 	strcpy(dev->name, device);
 
 	/* Prepare the target device for capturing packets */
-	if (!dev_open(dev, APP_NAME))
+	if (!dev_open(dev))
 	{
 		logprintf(LOG_FATAL, "Could not open device '%s'.\n", dev->name);
 		exit(EXIT_FAILURE);
