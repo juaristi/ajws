@@ -19,7 +19,8 @@
 bool interrupted;
 pajws_dev_t dev;
 
-void sighandler(int signal)
+void
+sighandler(int signal)
 {
 	logprintf(LOG_ALWAYS, "Interrupted. ");
 	dev_interrupt(dev);
@@ -27,7 +28,8 @@ void sighandler(int signal)
 }
 
 #ifndef TESTING
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	const char *device = "eth0";
 
@@ -134,7 +136,8 @@ int main(int argc, char **argv)
 	return 0;
 }
 #else
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	char logstr[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,'A','B','C'};
 

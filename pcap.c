@@ -16,7 +16,8 @@
 #include "log.h"
 #include "dev.h"
 
-static struct sockaddr *get_ip_addr(pcap_if_t *dev)
+static struct sockaddr *
+get_ip_addr(pcap_if_t *dev)
 {
 	struct sockaddr *addr = NULL;
 	struct sockaddr_in *addr_in;
@@ -37,7 +38,8 @@ static struct sockaddr *get_ip_addr(pcap_if_t *dev)
 	return addr;
 }
 
-bool dev_open(pajws_dev_t dev)
+bool
+dev_open(pajws_dev_t dev)
 {
 	bool success = false;
 
@@ -100,7 +102,8 @@ end:
 	return success;
 }
 
-void dev_close(pajws_dev_t dev)
+void
+dev_close(pajws_dev_t dev)
 {
 	pcap_t *pcap = (pcap_t *) dev->priv;
 	pcap_close(pcap);
@@ -113,7 +116,8 @@ dev_interrupt(pajws_dev_t dev)
 	pcap_breakloop(pcap);
 }
 
-int dev_poll(pajws_dev_t dev, u_char *buf, u_int len, pinfo_t pi)
+int
+dev_poll(pajws_dev_t dev, u_char *buf, u_int len, pinfo_t pi)
 {
 	struct pcap_pkthdr *hdr;
 	const u_char *pkt_data;
