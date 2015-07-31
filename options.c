@@ -21,25 +21,12 @@ struct ajws_option
 
 struct option_values opt;
 
-static void set_number(struct ajws_option *, const char *);
 static void set_boolean(struct ajws_option *, const char *);
 
 struct ajws_option opts[] = {
 		{"verbose", 'v', &opt.verbose, "0", set_boolean},
 		{"debug", 'd', &opt.debug, "0", set_boolean}
 };
-
-static void
-set_number(struct ajws_option *opt, const char *val)
-{
-	if (val)
-		*(int *)(opt->loc) = atoi(val);
-	else
-	{
-		if (opt->defval)
-			set_number(opt, opt->defval);
-	}
-}
 
 static void
 set_boolean(struct ajws_option *opt, const char *val)

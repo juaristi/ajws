@@ -47,7 +47,7 @@ dev_open(pajws_dev_t dev)
 	pcap_if_t *devs;
 	pcap_if_t *cur_dev;
 
-	struct sockaddr *ipaddr, *ethaddr;
+	struct sockaddr *ipaddr;
 	char err[PCAP_ERRBUF_SIZE];
 
 	if (pcap_findalldevs(&devs, err))

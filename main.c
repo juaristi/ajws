@@ -105,8 +105,8 @@ main(int argc, char **argv)
 		case 0:		/* No packets received. Continue. */
 			break;
 		case 1:		/* We received a packet! */
-			logprintf(LOG_ALWAYS, "Packet received (%d.%ud)\n", pi.ts.tv_sec, pi.ts.tv_usec);
-			hexlog(buf, pi.caplen);
+			logprintf(LOG_DEBUG, "Packet received (%d.%ud)\n", pi.ts.tv_sec, pi.ts.tv_usec);
+			hexlog((const char *) buf, pi.caplen);
 			break;
 		case -1:	/* Error */
 		default:	/* Fall through. Consider every other value an error. */

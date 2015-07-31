@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
@@ -32,8 +33,7 @@ read_hex_number(FILE *f)
 static bool
 dev_get_mac_addr(pajws_dev_t dev)
 {
-	int i, j;
-	char ch;
+	int i;
 	char prefix[] = "/sys/class/net/", suffix[] = "/address";
 	char *path = (char *) malloc (sizeof(prefix) + strlen(dev->name) + sizeof(suffix));
 
