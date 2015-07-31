@@ -5,10 +5,10 @@
  *      Author: ajuaristi
  */
 
-#include <ajws.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include "ajws.h"
 #include "log.h"
 
 void logprintf(int level, const char *fmt, ...)
@@ -18,11 +18,11 @@ void logprintf(int level, const char *fmt, ...)
 	case LOG_ALWAYS:
 		break;
 	case LOG_DEBUG:
-		if (!opt.debug)
+		if (!OPT(debug))
 			return;
 		break;
 	case LOG_VERBOSE:
-		if (!opt.verbose)
+		if (!OPT(verbose))
 			return;
 		break;
 	case LOG_FATAL:
@@ -45,7 +45,7 @@ void hexlog(const char *hexstr, int len)
 	int round, padding;
 
 	/* Hexdumps are only supposed to be used for debugging. */
-	if (!opt.debug)
+	if (!OPT(debug))
 		return;
 
 	start = hexstr;

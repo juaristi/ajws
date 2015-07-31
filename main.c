@@ -41,37 +41,13 @@ main(int argc, char **argv)
 	u_char buf[BUFLEN];
 	u_int bufsiz = BUFLEN;
 	char answer[3];
-	int cur_opt, opt_index;
-	struct option long_opts[] = {
-			{"verbose", no_argument, NULL, 0},
-			{"debug", no_argument, NULL, 0}
-	};
 	struct sigaction sigact = {
 		.sa_flags = SA_NODEFER,
 		.sa_handler = sighandler
 	};
 
-	while ((cur_opt = getopt_long(argc, argv, "vd", long_opts, &opt_index)) != -1)
-	{
-		switch (cur_opt)
-		{
-		case 0:
-			set_opt(long_opts[opt_index].name, "true");
-			break;
-		case 'v': /* verbose */
-			set_opt("verbose", "true");
-			break;
-		case 'd': /* debug */
-			set_opt("debug", "true");
-			break;
-		default:
-			break;
-		}
-	}
-
-	logprintf(LOG_ALWAYS, "verbose is %s\n", (OPT(verbose) ? "set" : "not set"));
-	logprintf(LOG_ALWAYS, "debug is %s\n", (OPT(debug) ? "set" : "not set"));
-	exit(EXIT_FAILURE);
+	init_options();
+	parse_options(argc, argv);
 
 	/* Register signal handlers */
 	interrupted = false;

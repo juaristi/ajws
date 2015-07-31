@@ -21,8 +21,8 @@ struct option_values
 /* Command line options */
 extern struct option_values opt;
 
-void set_opt(const char *, const char *);
-void unset_opt(const char *);
+void init_options();
+void parse_options(int argc, char **argv);
 
 #define OPT(val) (opt.val)
 #define OPT_INT(val) ((int) OPT(val))

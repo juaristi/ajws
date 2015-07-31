@@ -6,36 +6,43 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
 #include "ajws.h"
 
-struct option
+struct ajws_option
 {
-	char *name;
+	const char *name;
+	char short_opt;
 	void *loc;
-	char *defval;
-	void (*setter)(struct option *, const char *);
+	const char *defval;
+	void (*setter)(struct ajws_option *, const char *);
 };
+
 struct option_values opt;
 
-static void set_number(struct option *, const char *);
-static void set_boolean(struct option *, const char *);
+static void set_number(struct ajws_option *, const char *);
+static void set_boolean(struct ajws_option *, const char *);
 
-struct option opts[] = {
-		{"verbose", &opt.verbose, "0", set_boolean},
-		{"debug", &opt.debug, "0", set_boolean}
+struct ajws_option opts[] = {
+		{"verbose", 'v', &opt.verbose, "0", set_boolean},
+		{"debug", 'd', &opt.debug, "0", set_boolean}
 };
 
 static void
-set_number(struct option *opt, const char *val)
+set_number(struct ajws_option *opt, const char *val)
 {
 	if (val)
 		*(int *)(opt->loc) = atoi(val);
 	else
-		set_number(opt, opt->defval);
+	{
+		if (opt->defval)
+			set_number(opt, opt->defval);
+	}
 }
 
 static void
-set_boolean(struct option *opt, const char *val)
+set_boolean(struct ajws_option *opt, const char *val)
 {
 	bool v;
 
@@ -51,10 +58,13 @@ set_boolean(struct option *opt, const char *val)
 		*(bool *)(opt->loc) = v;
 	}
 	else
-		set_boolean(opt, opt->defval);
+	{
+		if (opt->defval)
+			set_boolean(opt, opt->defval);
+	}
 }
 
-void
+static void
 set_opt(const char *name, const char *val)
 {
 	int i;
@@ -65,8 +75,87 @@ set_opt(const char *name, const char *val)
 	}
 }
 
-void
-unset_opt(const char *name)
+static void
+set_short_opt(char short_opt, const char *val)
 {
-	set_opt(name, NULL);
+	int i;
+	for (i = 0; i < countof(opts); i++)
+	{
+		if (opts[i].short_opt == short_opt)
+			opts[i].setter(&opts[i], val);
+	}
+}
+
+static char *
+generate_shortopts_string()
+{
+	char *shortopts = NULL;
+	int num_shortopts = 0, i;
+
+	for (i = 0; i < countof(opts); i++)
+	{
+		if (opts[i].short_opt)
+		{
+			num_shortopts++;
+			shortopts = (char *) realloc(shortopts, num_shortopts + 1);
+			if (shortopts)
+			{
+				shortopts[num_shortopts - 1] = opts[i].short_opt;
+			}
+		}
+	}
+
+	shortopts[num_shortopts] = '\0';
+	return shortopts;
+}
+
+void
+init_options()
+{
+	int i;
+	for (i = 0; i < countof(opts); i++)
+		opts[i].setter(&opts[i], NULL);
+}
+
+void
+parse_options(int argc, char **argv)
+{
+	struct option long_opts[countof(opts)], *long_opt;
+	int i, cur_opt, opt_index;
+	const char *shortopts;
+
+	for (i = 0; i < countof(opts); i++)
+	{
+		long_opt = &long_opts[i];
+		long_opt->name = opts[i].name;
+		if (opts[i].setter == set_boolean)
+		{
+			long_opt->has_arg = no_argument;
+			long_opt->flag = NULL;
+			long_opt->val = opts[i].short_opt;
+		}
+	}
+	shortopts = generate_shortopts_string();
+
+	while ((cur_opt = getopt_long(argc, argv, shortopts, long_opts, &opt_index)) != -1)
+	{
+		if (cur_opt == 0)
+			set_opt(long_opts[opt_index].name, "true");
+		else if ((cur_opt >= 'a' && cur_opt <= 'z') || (cur_opt >= 'A' && cur_opt <= 'Z'))
+			set_short_opt(cur_opt, "true");
+		/*switch (cur_opt)
+		{
+		case 0:
+			set_opt(long_opts[opt_index].name, "true");
+			break;
+		case 'v':
+			set_opt("verbose", "true");
+			break;
+		case 'd':
+			set_opt("debug", "true");
+			break;
+		default:
+			break;
+		}*/
+	}
 }
