@@ -13,7 +13,7 @@ message (STATUS "Using handler '${AJWS_HANDLER}'.")
 message (STATUS "System: ${CMAKE_SYSTEM_NAME} on ${CMAKE_SYSTEM_PROCESSOR}")
 message (STATUS "Compiler flags: ${CMAKE_C_FLAGS}")
 
-set (srcs main.c log.c dev.c)
+set (srcs main.c log.c dev.c options.c)
 if (AJWS_HANDLER STREQUAL "pcap")
     list (APPEND srcs pcap.c)
 elseif (AJWS_HANDLER STREQUAL "pfring")
