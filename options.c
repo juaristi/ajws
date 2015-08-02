@@ -1,5 +1,8 @@
 /*
- * options.c
+ * options.c - Command-line options.
+ *
+ *  Add new command line options to the opts[]
+ *  structure array.
  *
  *  Created on: Jul 31, 2015
  *      Author: ajuaristi
@@ -9,6 +12,7 @@
 #include <string.h>
 #include <getopt.h>
 #include "ajws.h"
+#include "alloc.h"
 
 struct ajws_option
 {
@@ -36,10 +40,10 @@ set_boolean(struct ajws_option *opt, const char *val)
 	if (val)
 	{
 		if (strcasecmp(val, "true") == 0 ||
-				strcasecmp(val, "1") == 0)
+				strcmp(val, "1") == 0)
 			v = true;
 		else if (strcasecmp(val, "false") == 0 ||
-					strcasecmp(val, "0") == 0)
+					strcmp(val, "0") == 0)
 			v = false;
 
 		*(bool *)(opt->loc) = v;
@@ -84,11 +88,8 @@ generate_shortopts_string()
 		if (opts[i].short_opt)
 		{
 			num_shortopts++;
-			shortopts = (char *) realloc(shortopts, num_shortopts + 1);
-			if (shortopts)
-			{
-				shortopts[num_shortopts - 1] = opts[i].short_opt;
-			}
+			shortopts = (char *) ec_realloc(shortopts, num_shortopts + 1);
+			shortopts[num_shortopts - 1] = opts[i].short_opt;
 		}
 	}
 

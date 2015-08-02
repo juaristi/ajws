@@ -13,10 +13,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <getopt.h>
 #include "ajws.h"
 #include "log.h"
 #include "dev.h"
+#include "alloc.h"
 
 bool interrupted;
 pajws_dev_t dev;
@@ -40,7 +40,6 @@ main(int argc, char **argv)
 #define BUFLEN 512
 	u_char buf[BUFLEN];
 	u_int bufsiz = BUFLEN;
-	char answer[3];
 	struct sigaction sigact = {
 		.sa_flags = SA_NODEFER,
 		.sa_handler = sighandler
@@ -54,20 +53,10 @@ main(int argc, char **argv)
 	sigaction(SIGINT, &sigact, NULL);
 
 	/* Allocate buffers */
-	dev = (pajws_dev_t) malloc(sizeof(ajws_dev_t));
-	if (!dev)
-	{
-		logprintf(LOG_FATAL, "Could not allocate device buffer for device '%s'.\n", device);
-		exit(EXIT_FAILURE);
-	}
+	dev = (pajws_dev_t) ec_malloc(sizeof(ajws_dev_t));
 	memset(dev, 0, sizeof(ajws_dev_t));
 
-	dev->name = (char *) malloc(strlen(device) + 1);
-	if (!dev->name)
-	{
-		logprintf(LOG_FATAL, "Could not allocate device buffer for device '%s'.\n", device);
-		exit(EXIT_FAILURE);
-	}
+	dev->name = (char *) ec_malloc(strlen(device) + 1);
 	strcpy(dev->name, device);
 
 	/* Prepare the target device for capturing packets */
@@ -117,23 +106,7 @@ main(int argc, char **argv)
 	}
 
 	dev_close(dev);
-
-	/* Make some checks before exiting */
-	do
-	{
-		logprintf(LOG_ALWAYS, "Keep the pcap file (y/n)? ");
-		memset(answer, 0, sizeof(answer));
-		fgets(answer, sizeof(answer), stdin);
-		if (answer[1] == 0x0a)
-			answer[1] = 0;
-		if (!strcmp(answer, "y"))
-			logprintf(LOG_ALWAYS, "Saving.\n");
-		else if (!strcmp(answer, "n"))
-			logprintf(LOG_ALWAYS, "Removing.\n");
-		else
-			logprintf(LOG_ALWAYS, "Please answer 'y' or 'n'.\n");
-	} while (answer[0] != 'y' && answer[0] != 'n');
-	logprintf(LOG_ALWAYS, "\n");
+	ec_free_all();
 
 	return 0;
 }

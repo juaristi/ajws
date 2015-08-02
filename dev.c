@@ -13,6 +13,7 @@
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include "dev.h"
+#include "alloc.h"
 
 static u_char
 read_hex_number(FILE *f)
@@ -35,10 +36,7 @@ dev_get_mac_addr(pajws_dev_t dev)
 {
 	int i;
 	char prefix[] = "/sys/class/net/", suffix[] = "/address";
-	char *path = (char *) malloc (sizeof(prefix) + strlen(dev->name) + sizeof(suffix));
-
-	if (!path)
-		return false;
+	char *path = (char *) ec_malloc (sizeof(prefix) + strlen(dev->name) + sizeof(suffix));
 
 	strcpy(path, prefix);
 	strcat(path, dev->name);
@@ -80,14 +78,9 @@ dev_find_iface(pajws_dev_t dev)
 			if (memcmp(iface->ifa_addr, &dev->ip_addr, sizeof(struct sockaddr)) == 0)
 			{
 				/* We found a matching interface. Copy its name and exit. */
-				dev->name = (char *) malloc(strlen(iface->ifa_name));
-				if (dev->name)
-				{
-					strcpy(dev->name, iface->ifa_name);
-					result = true;
-				}
-				else
-					return false;
+				dev->name = (char *) ec_malloc(strlen(iface->ifa_name));
+				strcpy(dev->name, iface->ifa_name);
+				result = true;
 			}
 		}
 	}
