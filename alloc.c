@@ -1,7 +1,7 @@
 /*
  * alloc.c - Memory management.
  *
- *  This is a thin wrapper around calloc()/free().
+ *  This is a thin wrapper around calloc/realloc/free.
  *  We should try to keep it as thin as possible.
  *
  *  Created on: Aug 1, 2015
@@ -96,6 +96,8 @@ ec_free(void *ptr)
 	 * We assume the pointer we originally returned from ec_malloc
 	 * hasn't changed. This could be dangerous, but we want this function
 	 * to run at constant time.
+	 * But trying to free() an invalid pointer will horribly segfault anyway,
+	 * so this is a safe assumption.
 	 */
 	chk = ptr - sizeof(struct chunk);
 
