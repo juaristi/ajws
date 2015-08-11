@@ -30,4 +30,7 @@ void parse_options(int argc, char **argv);
 
 #define countof(o) (sizeof(o)/sizeof(o[0]))
 
+#define likely(x)	__builtin_expect((x),1)
+#define unlikely(x)	__builtin_expect((x),0)
+
 #endif

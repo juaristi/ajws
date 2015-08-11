@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
+#include "ajws.h"
 #include "alloc.h"
 #include "log.h"
 
@@ -47,7 +48,7 @@ ec_malloc(size_t length)
 	struct chunk *chk = NULL;
 	void *data = NULL;
 	void *mem = calloc(1, sizeof(struct chunk) + length);
-	if (!mem)
+	if (!unlikely(mem))
 	{
 		/* This is fatal. We want to exit as soon as possible. */
 		logprintf(LOG_FATAL, "Out of memory.\n");
@@ -70,13 +71,13 @@ ec_realloc(void *ptr, size_t length)
 	struct chunk *chk = NULL;
 	void *mem;
 
-	if (!ptr)
+	if (!unlikely(ptr))
 		return ec_malloc(length);
 
 	chk = ptr - sizeof(struct chunk);
 
 	mem = realloc(chk, length);
-	if (!mem)
+	if (!unlikely(mem))
 	{
 		logprintf(LOG_FATAL, "Out of memory.\n");
 		ec_free_all();
