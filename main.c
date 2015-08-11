@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include "ajws.h"
+#include "options.h"
 #include "log.h"
 #include "dev.h"
 #include "alloc.h"

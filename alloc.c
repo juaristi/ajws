@@ -119,5 +119,4 @@ ec_free_all()
 		 next = chk->next;
 		 free(chk);
 	}
-	return;
 }

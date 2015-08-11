@@ -21,16 +21,13 @@ struct option_values
 /* Command line options */
 extern struct option_values opt;
 
-void init_options();
-void parse_options(int argc, char **argv);
-
 #define OPT(val) (opt.val)
 #define OPT_INT(val) ((int) OPT(val))
 #define OPT_BOOL(val) ((bool) OPT(val))
 
 #define countof(o) (sizeof(o)/sizeof(o[0]))
 
-#define likely(x)	__builtin_expect((x),1)
-#define unlikely(x)	__builtin_expect((x),0)
+#define likely(x)	__builtin_expect(!!(x),1)
+#define unlikely(x)	__builtin_expect(!!(x),0)
 
 #endif
