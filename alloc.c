@@ -85,6 +85,8 @@ ec_realloc(void *ptr, size_t length)
 		exit(EXIT_FAILURE);
 	}
 
+	append_chunk((struct chunk *) mem);
+
 	return mem + sizeof(struct chunk);
 }
 
