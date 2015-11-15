@@ -39,7 +39,7 @@ get_ip_addr(pcap_if_t *dev)
 }
 
 bool
-dev_open(pajws_dev_t dev)
+dev_open(ajws_dev_t *dev)
 {
 	bool success = false;
 
@@ -49,32 +49,6 @@ dev_open(pajws_dev_t dev)
 
 	struct sockaddr *ipaddr;
 	char err[PCAP_ERRBUF_SIZE];
-
-	if (pcap_findalldevs(&devs, err))
-	{
-		logprintf(LOG_FATAL, "Could not get available devices.\n");
-		goto end;
-	}
-
-	/* Traverse the device list until we find the requested one */
-	for (cur_dev = devs; cur_dev; cur_dev = cur_dev->next)
-	{
-		if (!strcmp(cur_dev->name, dev->name))
-		{
-			ipaddr = get_ip_addr(cur_dev);
-			if (ipaddr)
-				memcpy(&dev->ip_addr, ipaddr, sizeof(struct sockaddr));
-			break;
-		}
-	}
-
-	if (cur_dev == NULL)
-	{
-		logprintf(LOG_FATAL, "Device '%s' was not found.\n", dev->name);
-		goto end;
-	}
-
-	pcap_freealldevs(devs);
 
 	pcap = pcap_create(dev->name, err);
 	if (pcap == NULL)
@@ -103,21 +77,21 @@ end:
 }
 
 void
-dev_close(pajws_dev_t dev)
+dev_close(ajws_dev_t *dev)
 {
 	pcap_t *pcap = (pcap_t *) dev->priv;
 	pcap_close(pcap);
 }
 
 void
-dev_interrupt(pajws_dev_t dev)
+dev_interrupt(ajws_dev_t *dev)
 {
 	pcap_t *pcap = (pcap_t *) dev->priv;
 	pcap_breakloop(pcap);
 }
 
 int
-dev_poll(pajws_dev_t dev, u_char *buf, u_int len, pinfo_t pi)
+dev_poll(ajws_dev_t *dev, u_char *buf, u_int len, info_t *pi)
 {
 	struct pcap_pkthdr *hdr;
 	const u_char *pkt_data;

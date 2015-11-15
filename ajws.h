@@ -16,6 +16,7 @@ struct option_values
 {
 	bool verbose;
 	bool debug;
+	bool help;
 };
 
 /* Command line options */

@@ -29,7 +29,8 @@ static void set_boolean(struct ajws_option *, const char *);
 
 struct ajws_option opts[] = {
 		{"verbose", 'v', &opt.verbose, "0", set_boolean},
-		{"debug", 'd', &opt.debug, "0", set_boolean}
+		{"debug", 'd', &opt.debug, "0", set_boolean},
+		{"help", 'h', &opt.help, "0", set_boolean}
 };
 
 static void
@@ -105,11 +106,11 @@ init_options()
 		opts[i].setter(&opts[i], NULL);
 }
 
-void
+int
 parse_options(int argc, char **argv)
 {
 	struct option long_opts[countof(opts)], *long_opt;
-	int i, cur_opt, opt_index;
+	int i, cur_opt, opt_index = 0;
 	const char *shortopts;
 
 	for (i = 0; i < countof(opts); i++)
@@ -146,4 +147,6 @@ parse_options(int argc, char **argv)
 			break;
 		}*/
 	}
+
+	return optind;
 }

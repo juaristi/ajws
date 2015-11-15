@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <errno.h>
 #include "ajws.h"
 #include "options.h"
 #include "log.h"
@@ -20,45 +21,31 @@
 #include "alloc.h"
 
 bool interrupted;
-pajws_dev_t dev;
+ajws_dev_t *dev;
+
+static void
+print_usage(const char *name)
+{
+	printf("./%s [-dv] <ifname|ipaddr> <port>\n", name);
+}
 
 void
 sighandler(int signal)
 {
 	logprintf(LOG_ALWAYS, "Interrupted. ");
-	dev_interrupt(dev);
+	if (dev)
+		dev_interrupt(dev);
 	interrupted = true;
 }
 
-#ifndef TESTING
-int
-main(int argc, char **argv)
+static void
+ajws_run(ajws_dev_t *dev)
 {
-	const char *device = "lo";
-
-	info_t pi;
-	struct sockaddr_in *ipaddr;
+	char *ipaddr = NULL;
 #define BUFLEN 512
 	u_char buf[BUFLEN];
 	u_int bufsiz = BUFLEN;
-	struct sigaction sigact = {
-		.sa_flags = SA_NODEFER,
-		.sa_handler = sighandler
-	};
-
-	init_options();
-	parse_options(argc, argv);
-
-	/* Register signal handlers */
-	interrupted = false;
-	sigaction(SIGINT, &sigact, NULL);
-
-	/* Allocate buffers */
-	dev = (pajws_dev_t) ec_malloc(sizeof(ajws_dev_t));
-	memset(dev, 0, sizeof(ajws_dev_t));
-
-	dev->name = (char *) ec_malloc(strlen(device) + 1);
-	strcpy(dev->name, device);
+	info_t pi;
 
 	/* Prepare the target device for capturing packets */
 	if (!dev_open(dev))
@@ -80,13 +67,8 @@ main(int argc, char **argv)
 	else
 		logprintf(LOG_VERBOSE, "\tMAC address: <not found>\n");
 
-	if (dev->ip_addr.sa_family)
-	{
-		ipaddr = (struct sockaddr_in *) &dev->ip_addr;
-		logprintf(LOG_VERBOSE, "\tIP address: %s\n", inet_ntoa(ipaddr->sin_addr));
-	}
-	else
-		logprintf(LOG_VERBOSE, "\tIP address: <not found>\n");
+	ipaddr = inet_ntoa(dev->addr.sin_addr);
+	logprintf(LOG_VERBOSE, "\tIP address: %s\n", (ipaddr ? ipaddr : "<not found>"));
 
 	while (!interrupted)
 	{
@@ -107,9 +89,77 @@ main(int argc, char **argv)
 	}
 
 	dev_close(dev);
-	ec_free_all();
+}
 
+#ifndef TESTING
+int
+main(int argc, char **argv)
+{
+#define MAX_PORT 65536
+	int pos;
+	struct in_addr addr;
+	bool (* find_iface_func) (ajws_dev_t *) = NULL;
+	struct sigaction sigact = {
+		.sa_flags = SA_NODEFER,
+		.sa_handler = sighandler
+	};
+
+	interrupted = false;
+	dev = NULL;
+
+	if (argc < 3)
+		goto bail;
+
+	init_options();
+	pos = parse_options(argc, argv);
+
+	if (opt.help || (pos + 2 != argc))
+		goto bail;
+
+	/* Register signal handlers */
+	sigaction(SIGINT, &sigact, NULL);
+
+	/* Allocate buffers */
+	dev = (ajws_dev_t *) ec_malloc(sizeof(ajws_dev_t));
+	memset(dev, 0, sizeof(ajws_dev_t));
+
+	/*
+	 * Parse the source address.
+	 * Here we could have either a dotted IPv4 address, or an interface name.
+	 */
+	if (inet_aton(argv[pos], &addr))
+	{
+		/* This is a valid IP address */
+		memcpy(&dev->addr.sin_addr, &addr, sizeof(dev->addr.sin_addr));
+		find_iface_func = dev_find_iface_by_ipaddr;
+	}
+	else
+	{
+		/* User specified an interface name */
+		dev->name = (char *) ec_malloc(strlen(argv[pos]) + 1);
+		strcpy(dev->name, argv[pos]);
+		find_iface_func = dev_find_iface_by_name;
+	}
+
+	if (!find_iface_func(dev))
+		goto bail;
+
+	/* Parse the source port we'll listen on */
+	dev->addr.sin_port = (in_port_t) strtol(argv[pos + 1], NULL, 10);
+	if (errno == ERANGE || dev->addr.sin_port > MAX_PORT)
+	{
+		/* User probably introduced an invalid port */
+		goto bail;
+	}
+
+	ajws_run(dev);
+
+	ec_free_all();
 	return 0;
+
+bail:
+	print_usage(argv[0]);
+	exit(0);
 }
 #else
 int

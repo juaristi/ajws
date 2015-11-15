@@ -9,6 +9,6 @@
 #define OPTIONS_H_
 
 void init_options();
-void parse_options(int argc, char **argv);
+int parse_options(int argc, char **argv);
 
 #endif /* OPTIONS_H_ */

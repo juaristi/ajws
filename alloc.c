@@ -54,7 +54,8 @@ ec_malloc(size_t length)
 		logprintf(LOG_FATAL, "Out of memory.\n");
 		ec_free_all();
 		kill(getpid(), SIGINT);
-		exit(EXIT_FAILURE);return NULL;
+		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	chk = (struct chunk *) mem;

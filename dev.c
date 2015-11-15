@@ -15,6 +15,8 @@
 #include "dev.h"
 #include "alloc.h"
 
+typedef bool (* func) (struct ifaddrs *, ajws_dev_t *);
+
 static u_char
 read_hex_number(FILE *f)
 {
@@ -32,11 +34,12 @@ read_hex_number(FILE *f)
 }
 
 static bool
-dev_get_mac_addr(pajws_dev_t dev)
+dev_get_mac_addr(ajws_dev_t *dev)
 {
 	int i;
 	char prefix[] = "/sys/class/net/", suffix[] = "/address";
-	char *path = (char *) ec_malloc (sizeof(prefix) + strlen(dev->name) + sizeof(suffix));
+#define DEV_NAME_LEN (sizeof(prefix) + strlen(dev->name) + sizeof(suffix))
+	char *path = (char *) ec_malloc (DEV_NAME_LEN);
 
 	strcpy(path, prefix);
 	strcat(path, dev->name);
@@ -44,9 +47,9 @@ dev_get_mac_addr(pajws_dev_t dev)
 
 	FILE *f = fopen(path, "r");
 	if (!f)
-		return 0;
+		return false;
 
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < MAC_ADDR_LEN; i++)
 	{
 		dev->mac_addr[i] = (read_hex_number(f) << 4) + read_hex_number(f);
 
@@ -58,8 +61,38 @@ dev_get_mac_addr(pajws_dev_t dev)
 	return true;
 }
 
-bool
-dev_find_iface(pajws_dev_t dev)
+static bool
+__dev_cmp_ipaddr(struct ifaddrs *iface, ajws_dev_t *dev)
+{
+	in_addr_t ipaddrs[] = {
+			((struct sockaddr_in *)iface->ifa_addr)->sin_addr.s_addr,
+			dev->addr.sin_addr.s_addr
+	};
+
+	if (ipaddrs[0] == ipaddrs[1])
+	{
+		dev->name = (char *) ec_malloc(strlen(iface->ifa_name) + 1);
+		strcpy(dev->name, iface->ifa_name);
+		return true;
+	}
+
+	return false;
+}
+
+static bool
+__dev_cmp_name(struct ifaddrs *iface, ajws_dev_t *dev)
+{
+	if (strcmp(iface->ifa_name, dev->name) == 0)
+	{
+		memcpy(&dev->addr, iface->ifa_addr, sizeof(dev->addr));
+		return true;
+	}
+
+	return false;
+}
+
+static bool
+dev_find_iface(ajws_dev_t *dev, func f)
 {
 	struct ifaddrs *ifaces, *iface;
 	bool result = false;
@@ -75,16 +108,36 @@ dev_find_iface(pajws_dev_t dev)
 		 */
 		if (iface->ifa_addr->sa_family == AF_INET)
 		{
-			if (memcmp(iface->ifa_addr, &dev->ip_addr, sizeof(struct sockaddr)) == 0)
-			{
-				/* We found a matching interface. Copy its name and exit. */
-				dev->name = (char *) ec_malloc(strlen(iface->ifa_name));
-				strcpy(dev->name, iface->ifa_name);
-				result = true;
-			}
+			result = f(iface, dev);
+			if (result)
+				dev->addr.sin_family = AF_INET;
 		}
 	}
 
-	/* We got the interface name. Now get the MAC and we're done. */
-	return dev_get_mac_addr(dev);
+	if (result)
+	{
+		/* We got the interface name. Now get the MAC and we're done. */
+		result = dev_get_mac_addr(dev);
+	}
+
+	freeifaddrs(ifaces);
+	return result;
+}
+
+bool
+dev_find_iface_by_ipaddr(ajws_dev_t *dev)
+{
+	if (dev->name != NULL)
+	{
+		ec_free(dev->name);
+		dev->name = NULL;
+	}
+
+	return dev_find_iface(dev, __dev_cmp_ipaddr);
+}
+
+bool
+dev_find_iface_by_name(ajws_dev_t *dev)
+{
+	return dev_find_iface(dev, __dev_cmp_name);
 }
