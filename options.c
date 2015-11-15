@@ -63,7 +63,10 @@ set_opt(const char *name, const char *val)
 	for (i = 0; i < countof(opts); i++)
 	{
 		if (strcmp(opts[i].name, name) == 0)
+		{
 			opts[i].setter(&opts[i], val);
+			break;
+		}
 	}
 }
 
@@ -74,7 +77,10 @@ set_short_opt(char short_opt, const char *val)
 	for (i = 0; i < countof(opts); i++)
 	{
 		if (opts[i].short_opt == short_opt)
+		{
 			opts[i].setter(&opts[i], val);
+			break;
+		}
 	}
 }
 
@@ -148,5 +154,6 @@ parse_options(int argc, char **argv)
 		}*/
 	}
 
+	ec_free(shortopts);
 	return optind;
 }
