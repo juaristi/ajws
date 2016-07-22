@@ -20,9 +20,9 @@ typedef bool(*func) (struct ifaddrs *, ajws_dev_t *);
 static u_char read_hex_number(FILE * f)
 {
 	u_char num = fgetc(f);
-	if (num >= '0' && num <= '9')
+	if (num >= '0' && num <= '9') {
 		num = (num - '0');
-	else {
+	} else {
 		if (num >= 'A' && num <= 'F')
 			num = tolower(num);
 		if (num >= 'a' && num <= 'f')
@@ -113,17 +113,32 @@ static bool dev_find_iface(ajws_dev_t * dev, func f)
 	return result;
 }
 
-bool dev_find_iface_by_ipaddr(ajws_dev_t * dev)
+struct ajws_iface *iface_find_by_ipaddr_dotted(const char *ipaddr_dotted)
 {
-	if (dev->name != NULL) {
-		ec_free(dev->name);
-		dev->name = NULL;
-	}
+	struct in_addr ipaddr;
+	struct ajws_iface *iface;
+
+	if (!ipaddr_dotted || inet_aton(ipaddr_dotted, &ipaddr) == 0)
+		goto end;
+
+	iface = iface_find_by_ipaddr(&ipaddr);
+
+end:
+	return iface;
+}
+
+struct ajws_iface *iface_find_by_ipaddr(struct in_addr *ipaddr)
+{
+	if (!ipaddr)
+		return NULL;
 
 	return dev_find_iface(dev, __dev_cmp_ipaddr);
 }
 
-bool dev_find_iface_by_name(ajws_dev_t * dev)
+struct ajws_iface *iface_find_by_name(const char *name)
 {
+	if (!name)
+		return NULL;
+
 	return dev_find_iface(dev, __dev_cmp_name);
 }
