@@ -15,16 +15,14 @@
 #include "dev.h"
 #include "alloc.h"
 
-typedef bool (* func) (struct ifaddrs *, ajws_dev_t *);
+typedef bool(*func) (struct ifaddrs *, ajws_dev_t *);
 
-static u_char
-read_hex_number(FILE *f)
+static u_char read_hex_number(FILE * f)
 {
 	u_char num = fgetc(f);
 	if (num >= '0' && num <= '9')
 		num = (num - '0');
-	else
-	{
+	else {
 		if (num >= 'A' && num <= 'F')
 			num = tolower(num);
 		if (num >= 'a' && num <= 'f')
@@ -33,13 +31,12 @@ read_hex_number(FILE *f)
 	return num;
 }
 
-static bool
-dev_get_mac_addr(ajws_dev_t *dev)
+static bool dev_get_mac_addr(ajws_dev_t * dev)
 {
 	int i;
 	char prefix[] = "/sys/class/net/", suffix[] = "/address";
 #define DEV_NAME_LEN (sizeof(prefix) + strlen(dev->name) + sizeof(suffix))
-	char *path = (char *) ec_malloc (DEV_NAME_LEN);
+	char *path = (char *)ec_malloc(DEV_NAME_LEN);
 
 	strcpy(path, prefix);
 	strcat(path, dev->name);
@@ -49,9 +46,9 @@ dev_get_mac_addr(ajws_dev_t *dev)
 	if (!f)
 		return false;
 
-	for (i = 0; i < MAC_ADDR_LEN; i++)
-	{
-		dev->mac_addr[i] = (read_hex_number(f) << 4) + read_hex_number(f);
+	for (i = 0; i < MAC_ADDR_LEN; i++) {
+		dev->mac_addr[i] =
+		    (read_hex_number(f) << 4) + read_hex_number(f);
 
 		/* Skip the semicolon */
 		read_hex_number(f);
@@ -61,17 +58,15 @@ dev_get_mac_addr(ajws_dev_t *dev)
 	return true;
 }
 
-static bool
-__dev_cmp_ipaddr(struct ifaddrs *iface, ajws_dev_t *dev)
+static bool __dev_cmp_ipaddr(struct ifaddrs *iface, ajws_dev_t * dev)
 {
 	in_addr_t ipaddrs[] = {
-			((struct sockaddr_in *)iface->ifa_addr)->sin_addr.s_addr,
-			dev->addr.sin_addr.s_addr
+		((struct sockaddr_in *)iface->ifa_addr)->sin_addr.s_addr,
+		dev->addr.sin_addr.s_addr
 	};
 
-	if (ipaddrs[0] == ipaddrs[1])
-	{
-		dev->name = (char *) ec_malloc(strlen(iface->ifa_name) + 1);
+	if (ipaddrs[0] == ipaddrs[1]) {
+		dev->name = (char *)ec_malloc(strlen(iface->ifa_name) + 1);
 		strcpy(dev->name, iface->ifa_name);
 		return true;
 	}
@@ -79,11 +74,9 @@ __dev_cmp_ipaddr(struct ifaddrs *iface, ajws_dev_t *dev)
 	return false;
 }
 
-static bool
-__dev_cmp_name(struct ifaddrs *iface, ajws_dev_t *dev)
+static bool __dev_cmp_name(struct ifaddrs *iface, ajws_dev_t * dev)
 {
-	if (strcmp(iface->ifa_name, dev->name) == 0)
-	{
+	if (strcmp(iface->ifa_name, dev->name) == 0) {
 		memcpy(&dev->addr, iface->ifa_addr, sizeof(dev->addr));
 		return true;
 	}
@@ -91,8 +84,7 @@ __dev_cmp_name(struct ifaddrs *iface, ajws_dev_t *dev)
 	return false;
 }
 
-static bool
-dev_find_iface(ajws_dev_t *dev, func f)
+static bool dev_find_iface(ajws_dev_t * dev, func f)
 {
 	struct ifaddrs *ifaces, *iface;
 	bool result = false;
@@ -100,22 +92,19 @@ dev_find_iface(ajws_dev_t *dev, func f)
 	if (getifaddrs(&ifaces) == -1)
 		return false;
 
-	for (iface = ifaces; iface && !result; iface = iface->ifa_next)
-	{
+	for (iface = ifaces; iface && !result; iface = iface->ifa_next) {
 		/*
 		 * We assume IP address is an IPv4 (AF_INET).
 		 * We don't support IPv6 yet. Patience!
 		 */
-		if (iface->ifa_addr->sa_family == AF_INET)
-		{
+		if (iface->ifa_addr->sa_family == AF_INET) {
 			result = f(iface, dev);
 			if (result)
 				dev->addr.sin_family = AF_INET;
 		}
 	}
 
-	if (result)
-	{
+	if (result) {
 		/* We got the interface name. Now get the MAC and we're done. */
 		result = dev_get_mac_addr(dev);
 	}
@@ -124,11 +113,9 @@ dev_find_iface(ajws_dev_t *dev, func f)
 	return result;
 }
 
-bool
-dev_find_iface_by_ipaddr(ajws_dev_t *dev)
+bool dev_find_iface_by_ipaddr(ajws_dev_t * dev)
 {
-	if (dev->name != NULL)
-	{
+	if (dev->name != NULL) {
 		ec_free(dev->name);
 		dev->name = NULL;
 	}
@@ -136,8 +123,7 @@ dev_find_iface_by_ipaddr(ajws_dev_t *dev)
 	return dev_find_iface(dev, __dev_cmp_ipaddr);
 }
 
-bool
-dev_find_iface_by_name(ajws_dev_t *dev)
+bool dev_find_iface_by_name(ajws_dev_t * dev)
 {
 	return dev_find_iface(dev, __dev_cmp_name);
 }

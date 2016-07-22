@@ -15,4 +15,4 @@ void *ec_realloc(void *, size_t);
 void ec_free(void *);
 void ec_free_all();
 
-#endif /* ALLOC_H_ */
+#endif				/* ALLOC_H_ */

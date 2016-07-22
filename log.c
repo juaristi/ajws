@@ -13,8 +13,7 @@
 
 void logprintf(int level, const char *fmt, ...)
 {
-	switch (level)
-	{
+	switch (level) {
 	case LOG_ALWAYS:
 		break;
 	case LOG_DEBUG:
@@ -52,22 +51,19 @@ void hexlog(const char *hexstr, int len)
 	written = 0;
 	written_ttl = 0;
 
-	do
-	{
-		end = (len - written_ttl > HEXLOG_MAX_LEN) ? start + HEXLOG_MAX_LEN : start + (len - written_ttl);
+	do {
+		end =
+		    (len - written_ttl >
+		     HEXLOG_MAX_LEN) ? start + HEXLOG_MAX_LEN : start + (len -
+									 written_ttl);
 
-		for (round = 0; round < 2; round++)
-		{
-			for (curpos = start; curpos != end; curpos++)
-			{
-				if (round == 0)
-				{
-					printf("%.2hhx ", (char) *curpos);
+		for (round = 0; round < 2; round++) {
+			for (curpos = start; curpos != end; curpos++) {
+				if (round == 0) {
+					printf("%.2hhx ", (char)*curpos);
 					written++;
 					written_ttl++;
-				}
-				else if (round == 1)
-				{
+				} else if (round == 1) {
 					if (*curpos >= 32 && *curpos <= 126)
 						printf("%c", *curpos);
 					else
@@ -75,11 +71,12 @@ void hexlog(const char *hexstr, int len)
 				}
 			}
 
-			if (round == 0)
-			{
-				if (written < HEXLOG_MAX_LEN)
-				{
-					for (padding = 0; padding < ((HEXLOG_MAX_LEN - written) * 3); padding++)
+			if (round == 0) {
+				if (written < HEXLOG_MAX_LEN) {
+					for (padding = 0;
+					     padding <
+					     ((HEXLOG_MAX_LEN - written) * 3);
+					     padding++)
 						printf(" ");
 				}
 				printf("| ");

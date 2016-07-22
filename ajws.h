@@ -12,8 +12,7 @@ typedef _Bool bool;
 #define true  1
 #define false 0
 
-struct option_values
-{
+struct option_values {
 	bool verbose;
 	bool debug;
 	bool help;

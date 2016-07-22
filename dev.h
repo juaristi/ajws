@@ -66,4 +66,4 @@ int dev_poll(ajws_dev_t *, u_char *, u_int, info_t *);
 bool dev_find_iface_by_ipaddr(ajws_dev_t *);
 bool dev_find_iface_by_name(ajws_dev_t *);
 
-#endif /* DEV_H_ */
+#endif				/* DEV_H_ */

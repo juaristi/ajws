@@ -11,4 +11,4 @@
 void init_options();
 int parse_options(int argc, char **argv);
 
-#endif /* OPTIONS_H_ */
+#endif				/* OPTIONS_H_ */
