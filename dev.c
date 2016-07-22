@@ -65,7 +65,7 @@ static bool __dev_cmp_ipaddr(struct ifaddrs *iface, ajws_dev_t * dev)
 		dev->addr.sin_addr.s_addr
 	};
 
-	if (ipaddrs[0] == ipaddrs[1]) {
+	if ((uint32_t) ipaddrs[0] == (uint32_t) ipaddrs[1]) {
 		dev->name = (char *)ec_malloc(strlen(iface->ifa_name) + 1);
 		strcpy(dev->name, iface->ifa_name);
 		return true;
